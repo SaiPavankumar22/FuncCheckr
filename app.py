@@ -2,36 +2,76 @@ from flask import Flask, request, jsonify, render_template
 import ast
 import uuid
 import os
+from dotenv import load_dotenv
 import inspect
+from groq import Groq
 
 app = Flask(__name__)
-
+load_dotenv()
 # Store user code and parsed functions
 code_store = {}
 
-# 🔧 Simulated LLM output
+# Initialize Groq client
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
 def simulate_llm_response(function_code):
-    # You should integrate Groq or OpenAI here
+    try:
+        # Prepare the prompt for Groq
+        prompt = f"""
+        You are a coding assistant. Analyze the following function.
 
-    prompt = f"""
-    You are a coding assistant. Analyze the following function.
+        - Provide the required imports
+        - List required inputs in this format: 
+        [{{"name": "input1", "type": "text/image/number"}}]
 
-    - Provide the required imports
-    - List required inputs in this format: 
-    [{{"name": "input1", "type": "text/image/number"}}]
+        Function code:
+        ```python
+        {function_code}
+        ```
 
-    Function code:
-    ```python
-    {function_code}
-    """
+        Respond in JSON format with two fields:
+        1. "full_code": The complete code with imports
+        2. "inputs": List of required inputs in the specified format
+        """
 
-    return {
-        "full_code": f"import os\n\n{function_code}",
-        "inputs": [
-            {"name": "name", "type": "text"},
-            #{"name": "image", "type": "image"}
-        ]
-    }
+        # Call Groq API
+        response = client.chat.completions.create(
+            model="mixtral-8x7b-32768",  # Using Mixtral model for better code understanding
+            messages=[
+                {"role": "system", "content": "You are a coding assistant that analyzes Python functions and returns structured JSON responses."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.1,  # Low temperature for more deterministic responses
+            max_tokens=1000
+        )
+
+        # Parse the response
+        response_text = response.choices[0].message.content
+        
+        # Extract JSON from the response
+        import json
+        try:
+            # Try to parse the response as JSON directly
+            result = json.loads(response_text)
+        except json.JSONDecodeError:
+            # If direct parsing fails, try to extract JSON from the text
+            import re
+            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+            if json_match:
+                result = json.loads(json_match.group())
+            else:
+                raise ValueError("Could not parse Groq response as JSON")
+
+        return result
+
+    except Exception as e:
+        # Fallback to a basic response if Groq fails
+        return {
+            "full_code": f"import os\n\n{function_code}",
+            "inputs": [
+                {"name": "name", "type": "text"}
+            ]
+        }
 
 
 @app.route("/")
