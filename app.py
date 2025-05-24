@@ -217,7 +217,7 @@ Respond with ONLY valid JSON in the exact format shown above.
         }
 @app.route("/")
 def index():
-    return render_template("main.html")
+    return render_template("try.html")
 
 @app.route("/code", methods=["POST"])
 def extract_functions():
