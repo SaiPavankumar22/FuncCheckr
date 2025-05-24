@@ -176,13 +176,30 @@
         }
       });
 
-      const res = await fetch('/test', {
-        method: 'POST',
-        body: formData
-      });
+      try {
+        const res = await fetch('/test', {
+          method: 'POST',
+          body: formData
+        });
 
-      const data = await res.json();
-      document.getElementById('output').textContent = data.result || data.error;
+        const data = await res.json();
+        const outputElement = document.getElementById('output');
+        
+        if (res.ok) {
+          // Success case
+          outputElement.textContent = data.result;
+          outputElement.style.color = 'black';
+        } else {
+          // Error case
+          outputElement.textContent = `Error: ${data.error}`;
+          outputElement.style.color = 'red';
+        }
+      } catch (error) {
+        // Network or parsing error
+        const outputElement = document.getElementById('output');
+        outputElement.textContent = `Error: ${error.message}`;
+        outputElement.style.color = 'red';
+      }
     }
   </script>
 </body>
