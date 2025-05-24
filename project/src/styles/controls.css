@@ -1,0 +1,173 @@
+/* Function section */
+.function-selection {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.function-selection h2 {
+  font-size: 1.2rem;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-primary);
+}
+
+.function-selection select {
+  width: 100%;
+  margin-bottom: var(--space-2);
+}
+
+.function-selection button {
+  width: 100%;
+}
+
+/* Dynamic input area */
+.dynamic-input-area {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.input-field {
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--border-radius);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--color-border);
+  animation: fadeIn var(--transition);
+}
+
+.input-field h3 {
+  font-size: 1rem;
+  margin-bottom: var(--space-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.input-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: color var(--transition-fast);
+}
+
+.close-btn:hover {
+  color: var(--color-error);
+}
+
+.input-group {
+  margin-bottom: var(--space-2);
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.input-group input,
+.input-group textarea {
+  width: 100%;
+  padding: var(--space-2);
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+.input-group input[type="file"] {
+  padding: var(--space-1);
+}
+
+.input-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-3);
+}
+
+/* Result area */
+.result-area {
+  padding: var(--space-3);
+  flex: 1;
+}
+
+.result-area h3 {
+  font-size: 1.2rem;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-primary);
+}
+
+.result-display {
+  background-color: var(--color-bg-tertiary);
+  border-radius: var(--border-radius);
+  padding: var(--space-3);
+  overflow-x: auto;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.result-display pre {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  color: var(--color-text-primary);
+}
+
+.result-success {
+  color: var(--color-success) !important;
+}
+
+.result-error {
+  color: var(--color-error) !important;
+}
+
+/* Dynamic input beside function */
+.floating-input {
+  position: absolute;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  width: 300px;
+  z-index: 1000;
+  animation: fadeIn var(--transition);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* No functions state */
+.no-functions {
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.no-functions svg {
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.no-functions p {
+  margin-bottom: var(--space-2);
+}
