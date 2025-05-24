@@ -1,237 +1,356 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FuncCheckr - Test Your Functions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Function Tester</title>
   <script src="https://unpkg.com/monaco-editor@0.33.0/min/vs/loader.js"></script>
   <style>
-    /* reset box-sizing for all elements */
-    *, *::before, *::after { box-sizing: border-box; }
-
+    /*–– Theme Variables ––*/
     :root {
-      --primary-color: #3b82f6;
-      --secondary-color: #1e293b;
-      --accent-color: #60a5fa;
-      --bg-color: #0f172a;
-      --text-color: #f8fafc;
-      --border-color: #334155;
-      --success-color: #22c55e;
-      --error-color: #ef4444;
+      --bg: #f4f4f4;
+      --card-bg: #ffffff;
+      --header-bg: #2c3e50;
+      --text: #333333;
+      --btn: #2980b9;
+      --btn-hover: #3498db;
       --transition: 0.3s ease;
     }
-
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
+    html.dark {
+      --bg: #1e1e1e;
+      --card-bg: #2b2b2b;
+      --header-bg: #151515;
+      --text: #dddddd;
+      --btn: #3a3a3a;
+      --btn-hover: #505050;
     }
+
+    * { box-sizing: border-box; transition: color var(--transition), background var(--transition); }
     body {
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      /* increased padding to clear the taller header */
-      padding-top: 96px;
+      margin: 0; padding:  96px 0 0 0;
+      display: flex; flex-direction: column;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', sans-serif;
     }
 
+    /*–– Header ––*/
     header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 64px;
+      background: var(--header-bg);
+      color: #fff;
       padding: 1rem;
-      background-color: var(--secondary-color);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--border-color);
-      z-index: 10;
     }
-
-    .logo { font-size: 1.5rem; font-weight: 600; }
-    .controls { display: flex; align-items: center; gap: 1rem; }
-    .language-select { display: flex; align-items: center; gap: 0.5rem; }
-    select {
-      background: var(--bg-color);
-      color: var(--text-color);
-      padding: 0.5rem;
-      border: 1px solid var(--border-color);
-      border-radius: 0.375rem;
+    header h2 { margin: 0; font-size: 1.5rem; }
+    header .controls {
+      display: flex; gap: 0.5rem;
+    }
+    header select, header button {
+      padding: 0.5rem; font-size: 1rem;
+      border-radius: 4px; border: none;
       cursor: pointer;
-      transition: var(--transition);
     }
-    .btn {
-      background: var(--primary-color);
-      color: var(--text-color);
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 0.375rem;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-    .btn.secondary { background: transparent; border: 1px solid var(--border-color); }
+    header button { background: var(--btn); color: #fff; }
+    header button:hover { background: var(--btn-hover); }
 
-    main {
-      display: flex;
+    /*–– Main Card ––*/
+    .card {
+      background: var(--card-bg);
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin: 1rem;
+      padding: 1rem;
       flex: 1;
-      overflow: hidden;
-    }
-    #editor-container {
-      flex: 1;
-      min-width: 0;
-      min-height: 0;
-    }
-    .sidebar {
-      width: 400px;
-      background: var(--secondary-color);
-      border-left: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
     }
-    .function-controls {
-      padding: 1rem;
-      border-bottom: 1px solid var(--border-color);
+
+    /*–– Editor Panel ––*/
+    #editor-panel {
+      position: relative;
+      height: 50vh;
+      border: 2px solid #ccc;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      transition: height var(--transition);
     }
-    #dynamic-ui {
-      padding: 1rem;
-      flex: 1;
-      overflow-y: auto;
-    }
-    .result-area {
-      padding: 1rem;
-      background: var(--bg-color);
-      border-top: 1px solid var(--border-color);
-    }
-    #output {
-      font-family: monospace;
-      white-space: pre-wrap;
-      max-height: 200px;
-      overflow-y: auto;
+    #editor-panel.collapsed { height: 2.5rem; }
+    #toggle-editor {
+      position: absolute; top: 0.5rem; right: 0.5rem;
+      background: var(--btn); color: #fff;
+      border: none; padding: 0.25rem 0.5rem;
+      border-radius: 4px; cursor: pointer;
+      z-index: 10;
     }
 
-    /* Monaco Editor background override */
-    .monaco-editor .monaco-editor-container { background-color: var(--bg-color) !important; }
+    /*–– Controls ––*/
+    #controls {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+    }
+    #controls button, #controls select {
+      flex: 1 1 120px;
+      padding: 0.75rem;
+      border: 1px solid #ccc; border-radius: 4px;
+      background: var(--btn); color: #fff;
+      cursor: pointer;
+      position: relative;
+    }
+    #controls button[disabled] {
+      opacity: 0.6; cursor: not-allowed;
+    }
+    .spinner {
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top: 2px solid #fff;
+      border-radius: 50%;
+      width: 1rem; height: 1rem;
+      animation: spin 0.8s linear infinite;
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /*–– Dynamic Inputs ––*/
+    #dynamic-ui {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .input-card {
+      background: var(--card-bg);
+      padding: 1rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      position: relative;
+      overflow: hidden;
+      opacity: 0; transform: translateY(10px);
+      animation: fadeIn 0.4s forwards;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .input-card label {
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .input-card input {
+      width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc;
+    }
+    .input-card .preview {
+      margin-top: 0.5rem;
+      max-height: 100px;
+      object-fit: contain;
+      display: none;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+
+    /*–– Test & Output ––*/
+    #test-area {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    #test-button {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border: none; border-radius: 9999px;
+      background: var(--btn); color: #fff;
+      cursor: pointer;
+      position: relative;
+    }
+    #test-button[disabled] { opacity: 0.6; cursor: not-allowed; }
+    #result-area {
+      background: var(--card-bg);
+      padding: 1rem; border-radius: 0.75rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    #output {
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+
+    /*–– Responsive ––*/
+    @media (max-width: 600px) {
+      header h2 { font-size: 1.2rem; }
+      #controls { flex-direction: column; }
+    }
   </style>
 </head>
 <body>
   <header>
-    <div class="logo">FuncCheckr</div>
+    <h2>Function Tester</h2>
     <div class="controls">
-      <div class="language-select">
-        <label for="languageSelector">Language:</label>
-        <select id="languageSelector" onchange="changeLanguage(this.value)">
-          <option value="python">Python</option>
-          <option value="javascript">JavaScript</option>
-          <option value="cpp">C++</option>
-          <option value="java">Java</option>
-        </select>
-      </div>
-      <button class="btn" onclick="submitCode()">Analyze Code</button>
-      <button class="btn secondary" onclick="clearAll()">Clear</button>
+      <select id="languageSelector"></select>
+      <button id="themeToggle">🌙</button>
     </div>
   </header>
 
-  <main>
-    <div id="editor-container"></div>
-    <div class="sidebar">
-      <div class="function-controls">
-        <select id="functionDropdown" disabled><option>No functions available</option></select>
-        <button class="btn" id="analyzeBtn" onclick="analyzeFunction()" disabled>Test Function</button>
-      </div>
-      <div id="dynamic-ui"></div>
-      <div class="result-area">
-        <h3>Output</h3>
-        <pre id="output">Results will appear here</pre>
-      </div>
+  <div class="card">
+    <div id="editor-panel">
+      <button id="toggle-editor">Hide Editor</button>
+      <div id="editor-container" style="width:100%; height:100%;"></div>
     </div>
-  </main>
+
+    <div id="controls">
+      <button id="submit-btn">Submit Code</button>
+      <select id="functionDropdown" disabled></select>
+      <button id="try-btn" disabled>Try</button>
+    </div>
+
+    <div id="dynamic-ui"></div>
+
+    <div id="test-area">
+      <button id="test-button" disabled>Test Function</button>
+    </div>
+
+    <div id="result-area">
+      <h3>Output:</h3>
+      <pre id="output"></pre>
+    </div>
+  </div>
 
   <script>
-    let editor, uid='', fullCode='', currentInputs=[], currentLanguage='python';
-    require.config({ paths:{ vs:'https://unpkg.com/monaco-editor@0.33.0/min/vs' } });
+  (function(){
+    // Element refs
+    const languageSelector = document.getElementById('languageSelector');
+    const themeToggle      = document.getElementById('themeToggle');
+    const toggleEditorBtn  = document.getElementById('toggle-editor');
+    const editorPanel      = document.getElementById('editor-panel');
+    const submitBtn        = document.getElementById('submit-btn');
+    const fnDropdown       = document.getElementById('functionDropdown');
+    const tryBtn           = document.getElementById('try-btn');
+    const dynamicUI        = document.getElementById('dynamic-ui');
+    const testButton       = document.getElementById('test-button');
+    const outputEl         = document.getElementById('output');
+
+    let editor, uid='', fullCode='', currentInputs=[];
+
+    // Monaco setup
+    require.config({ paths:{ vs:'https://unpkg.com/monaco-editor@0.33.0/min/vs'}});
     require(['vs/editor/editor.main'], () => {
       editor = monaco.editor.create(document.getElementById('editor-container'), {
-        value: 'def greet(name):\n    return `Hello, ${name}!`',
-        language: currentLanguage,
-        theme: 'vs-dark',
-        automaticLayout: true
+        value: `def greet(name):\n    return f"Hello, {name}!"`,
+        language: 'python', theme: 'vs-dark'
+      });
+      // Populate language selector
+      ['python','javascript','cpp','java'].forEach(lang=>{
+        const o=new Option(lang,lang);
+        languageSelector.add(o);
       });
     });
 
-    function changeLanguage(lang) {
-      currentLanguage = lang;
-      monaco.editor.setModelLanguage(editor.getModel(), lang);
+    // Theme toggle
+    themeToggle.onclick = () => {
+      document.documentElement.classList.toggle('dark');
+      themeToggle.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+    };
+
+    // Collapse/expand editor
+    toggleEditorBtn.onclick = () => {
+      editorPanel.classList.toggle('collapsed');
+      toggleEditorBtn.textContent = editorPanel.classList.contains('collapsed') ? 'Show Editor' : 'Hide Editor';
+      editor.layout();
+    };
+
+    // Language switch
+    languageSelector.onchange = () => {
+      monaco.editor.setModelLanguage(editor.getModel(), languageSelector.value);
+    };
+
+    // API helpers
+    async function callAPI(url, payload, isForm=false){
+      const opts = { method:'POST' };
+      if(isForm) opts.body = payload;
+      else {
+        opts.headers = {'Content-Type':'application/json'};
+        opts.body = JSON.stringify(payload);
+      }
+      const btn = url===' /test' ? testButton : (url==='/analyze'?tryBtn:submitBtn);
+      btn.disabled = true;
+      btn.innerHTML = `<div class="spinner"></div>`;
+      try{
+        const res = await fetch(url, opts);
+        const data = await res.json();
+        return { ok:res.ok, data };
+      }finally{
+        btn.disabled = false;
+        btn.innerHTML = btn.id.includes('submit') ? 'Submit Code' : btn.id==='try-btn'?'Try':'Test Function';
+      }
     }
 
-    async function submitCode() {
+    // Submit code
+    submitBtn.onclick = async () => {
       const code = editor.getValue();
-      fullCode = code;
-      const res = await fetch('/code', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,language:currentLanguage})});
-      const data = await res.json();
-      uid = data.uid;
-      const dropdown = document.getElementById('functionDropdown');
-      dropdown.innerHTML = '';
-      data.functionNames.forEach(fn=>dropdown.add(new Option(fn,fn)));
-      dropdown.disabled = false;
-      document.getElementById('analyzeBtn').disabled = false;
-      document.getElementById('output').textContent = `Found ${data.functionNames.length} functions`;
-    }
-
-    async function analyzeFunction() {
-      const fn = document.getElementById('functionDropdown').value;
-      const res = await fetch('/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({uid,functionName:fn,language:currentLanguage,code:fullCode})});
-      const data = await res.json();
-      renderInputs(data.inputs,data.full_code);
-    }
-
-    function renderInputs(inputs, code) {
-      currentInputs = inputs; fullCode = code;
-      const container = document.getElementById('dynamic-ui');
-      container.innerHTML = '';
-      inputs.forEach(inp=>{
-        const div = document.createElement('div');
-        const label = document.createElement('label'); label.textContent = inp.name;
-        const input = document.createElement('input'); input.name = inp.name;
-        div.append(label,input);
-        container.append(div);
+      const { data } = await callAPI('/code', { code });
+      uid = data.uid; fullCode = code;
+      fnDropdown.innerHTML = '';
+      data.functionNames.forEach(name=>{
+        fnDropdown.add(new Option(name,name));
       });
-      document.getElementById('analyzeBtn').textContent = 'Run Test';
-      document.getElementById('analyzeBtn').onclick = testFunction;
+      fnDropdown.disabled = false;
+      tryBtn.disabled = false;
+    };
+
+    // Analyze function
+    tryBtn.onclick = async () => {
+      const name = fnDropdown.value;
+      const { data } = await callAPI('/analyze', { uid, functionName: name });
+      renderInputs(data.inputs, data.full_code);
+      testButton.disabled = false;
+    };
+
+    // Render dynamic inputs
+    function renderInputs(inputs, code){
+      currentInputs = inputs; fullCode = code;
+      dynamicUI.innerHTML = '';
+      inputs.forEach((inp,i)=>{
+        const card = document.createElement('div');
+        card.className = 'input-card';
+        card.style.animationDelay = `${i*0.1}s`;
+        const label = document.createElement('label');
+        label.textContent = `${inp.name} (${inp.type})`;
+        const field = document.createElement('input');
+        if(inp.type==='image') { field.type='file'; field.accept='image/*';
+          const preview = document.createElement('img');
+          preview.className='preview';
+          field.onchange = ()=> {
+            const file = field.files[0];
+            if(file){
+              const url = URL.createObjectURL(file);
+              preview.src = url; preview.style.display='block';
+            }
+          };
+          card.append(label, field, preview);
+        } else {
+          field.type = 'text';
+          card.append(label, field);
+        }
+        field.name = inp.name;
+        dynamicUI.append(card);
+      });
     }
 
-    async function testFunction() {
+    // Test function
+    testButton.onclick = async () => {
       const form = new FormData();
       form.append('full_code', fullCode);
       form.append('uid', uid);
-      form.append('language', currentLanguage);
       currentInputs.forEach(inp=>{
-        form.append(inp.name, document.querySelector(`[name="${inp.name}"]`).value);
+        const el = dynamicUI.querySelector(`[name="${inp.name}"]`);
+        if(inp.type==='image') form.append(inp.name, el.files[0]||'');
+        else form.append(inp.name, el.value);
       });
-      const res = await fetch('/test',{method:'POST',body:form});
-      const data = await res.json();
-      document.getElementById('output').textContent = data.result || data.error;
-    }
-
-    function clearAll() {
-      editor.setValue(getDefaultCode(currentLanguage));
-      document.getElementById('functionDropdown').innerHTML = '<option>No functions available</option>';
-      document.getElementById('analyzeBtn').disabled = true;
-      document.getElementById('dynamic-ui').innerHTML = '';
-      document.getElementById('output').textContent = 'Results will appear here';
-    }
-
-    function getDefaultCode(lang) {
-      const defaults = {
-        python: 'def greet(name):\n    return `Hello, ${name}!`',
-        javascript: 'function greet(name) {\n  return `Hello, ${name}!`;\n}',
-        cpp: '#include <string>\nstd::string greet(std::string name) { return "Hello, " + name + "!"; }',
-        java: 'public class Main { public static String greet(String name) { return "Hello, " + name + "!"; } }'
-      };
-      return defaults[lang] || defaults.python;
-    }
+      const { ok, data } = await callAPI('/test', form, true);
+      outputEl.textContent = ok ? data.result : `Error: ${data.error}`;
+      outputEl.style.color = ok ? 'inherit' : 'red';
+    };
+  })();
   </script>
 </body>
 </html>
