@@ -399,6 +399,10 @@ def test_function():
         import traceback
         print("Debug: Full traceback:", traceback.format_exc())
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
+    
+@app.route("/test", methods=["POST"])
+def test_function():
+    return render_template("test.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
